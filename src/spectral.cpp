@@ -6,102 +6,124 @@
 using namespace std;
 
 class Fft{
+    
     private:
-        int N;
-        vector<int> map;
-        vector<vector<complex<float>>> coef_bank;
+    int sample_size;
+    int sample_exp;
+    vector<int> sample_order;
+    vector<vector<complex<float>>> fft_coefs;
+
+    void fftSequence(){ 
+        sample_order = vector<int>(sample_size);
+        // cout << "making sample order..." << endl;
         
-        string strBin(int number, int digits){
-            digits = 1 << digits - 1;
-            string rtrn = "";
-            do{
-                rtrn += (number & digits) ? '1' : '0';
-                digits >>= 1;
-            }while(digits);
-            
-            return rtrn;
-        }
+        for(int i = 0; i < sample_size; i++){
+            int low_mask = 1;
+            int high_mask = 1 << (sample_exp - 1);
+            sample_order[i] = 0;
 
-        vector<vector<complex<float>>> fftCoefs(int exp){
-            vector<vector<complex<float>>> coefs(exp,vector<complex<float>>(1<<exp));
-            
-            int freqs = 1 << exp;
-
-            for(int n = 0; n < exp; n++){
-                for(int k = 0; k < freqs; k++)
-                    coefs[n][k] = std::exp(complex<float>(0,-2 * M_PI * k / (1<<n)));
+            while(low_mask < high_mask){
+                sample_order[i] = sample_order[i] | (i & high_mask ? low_mask : 0) | (i & low_mask ? high_mask : 0);
+                low_mask <<= 1;
+                high_mask >>= 1;
             }
-            return coefs;
         }
 
-        vector<int> fftSequence(int n){    
-            vector<int> sequence(0,1<<n);
-    
-            for(int i = 0; i < sequence.size(); i++){
-                int low_mask = 1;
-                int high_mask = 1 << (n - 1);
-                sequence[i] = 0;
+        // cout << "passed!" << endl;
+    }
 
-                while(low_mask < high_mask){
-                    sequence[i] = sequence[i] | (i & high_mask ? low_mask : 0) | (i & low_mask ? high_mask : 0);
-                    low_mask <<= 1;
-                    high_mask >>= 1;
-                }
-                cout << strBin(sequence[i],n) + " " << sequence[i] << endl;
+    void fftCoefs(){
+        fft_coefs = vector<vector<complex<float>>>(sample_exp + 1,vector<complex<float>>(sample_size/2));
+
+        // cout << "making the coeficients..." << endl;
+        // cout << "fft_coefs["<< sample_exp + 1 << "]" << "[" << sample_size <<"]" << endl;
+
+        for(int exp = 1; exp <= sample_exp; exp++){
+            // cout << "exp:" << exp << endl;
+            for(int idx = 0; idx < sample_size/2; idx++){
+                // cout << "\t" << polar(1.0,-2 * M_PI * idx / (1<<exp)) << " = ";
+                // cout << "e^(2 * PI *" << idx << ") / (" << (1 << exp) << ") \t";
+                // cout << "\t fft_coefs[" << exp << "][" << idx << "]" << endl;
+                fft_coefs[exp][idx] = polar(1.0,-2 * M_PI * idx / (1<<exp));
             }
-            return sequence;
         }
+        // cout << "passed!" << endl;
+    }
 
-    public:
+    void butterfly(int bgn, int exp){
+        int wing_a = bgn;
+        int wing_b = (1<<(exp-1));
+        
+        // cout << "butterfly(" << bgn << ", " << exp << ")" << endl;
+        // cout << "\tbgn: " << bgn << ", 1<<(exp-1): " << (1<<(exp-1)) << endl;
+        // cout << "\twing_a: " << wing_a << ", wing_b: " << wing_b << endl << endl;
 
-        Fft(int exp): N(exp), map(fftSequence(exp)), coef_bank(fftCoefs(exp)){};
-    
-        // vector<complex<float>> exec(const vector<unsigned char>& samples){
-            
-        //     vector<complex<float>> ordered(0,map.size()>>1);
-        //     for(int i = 0; i < map.size()>>1; i++)
-        //         ordered[i] = samples[map[i<<1]] + samples[map[i<<1 + 1]];
-            
+        for(int i = wing_a; i < wing_a + wing_b; i++){
+            complex<float> even = freqs[i];
+            complex<float> odd = freqs[i + wing_b];
+            complex<float> coef = fft_coefs[exp][i - wing_a];
 
-        //     int K = 1 << N;
-        //     int exp = 1;
-        //     int len = ordered.size()/2;
-        //     vector<vector<complex<float>>> freqBin(K,vector<complex<float>>(len));
+            // cout << "\tfreqs[" << i << "] = " << "freqs[" << i << "] + fft_coefs[" << exp << "][" << i - wing_a << "] * freqs[" << i + wing_b << "]" << endl;
+            // cout << "\t" << even + coef * odd << " = " << even << " + " << coef << " * " << odd << endl << endl;
 
-        //     for(int k = 0; k < K; k++){
-        //         for(int i = 0; i < len; i++){
-        //             freqBin[k][i] = ordered[i<<1] + coef_bank[exp][k] * ordered[i<<1 + 1];
-        //         }
-        //     }
+            // cout << "\tfreqs[" << i + wing_b << "] = " << "freqs[" << i << "] - fft_coefs[" << exp << "][" << i - wing_a << "] * freqs[" << i + wing_b << "]" << endl;
+            // cout << "\t" << even - coef * odd << " = " << even << " - " << coef << " * " << odd << endl << endl;
 
-        //     len >>= 1;
-        //     exp ++;
-            
-        //     while(len){
+            freqs[i] = even + coef * odd;
+            freqs[i + wing_b] = even - coef * odd;
+        }
+    }
 
-        //         for(int k = 0; k < K; k++){
-        //             for(int i = 0; i < len; i++)
-        //                 freqBin[k][i] = freqBin[k][i<<1] + coef_bank[exp][k] * freqBin[k][i<<1 + 1];
-        //         }
+    //helper method 
+    string strBin(int number, int digits){
+        digits = 1 << digits - 1;
+        string rtrn = "";
+        do{
+            rtrn += (number & digits) ? '1' : '0';
+            digits >>= 1;
+        }while(digits);
+        
+        return rtrn;
+    }
 
-        //         exp++;
-        //         len >>= 1;
-        //     }
+    public: 
+    vector<complex<float>> freqs;
 
+    Fft(int exp): 
+    sample_exp(exp),
+    sample_size(1<<exp),
+    freqs(sample_size,0)
+    {
+        fftCoefs();
+        fftSequence();
+    }
+
+    void analize(vector<complex<float>>& samples){
+        
+        for(int i = 0; i < sample_size; i++)
+            freqs[i] = samples[sample_order[i]];
+
+
+        // cout << "analize" << endl << "freqs:" << "\n\t";
+        // for(auto freq : freqs){
+        //     cout << freq << " ";
         // }
+        // cout << endl;
 
-        void exec(const vector<unsigned char>& samples){
-            vector<complex<float>> ordered(0,map.size()>>1);
-            for(int i = 0; i < map.size()>>1; i++)
-                ordered[i] = samples[map[i<<1]] + samples[map[i<<1 + 1]];
+        for(int exp = 1; exp <= sample_exp; exp++){
+            int step = 1<<exp;
+            for(int op_idx = 0; op_idx < sample_size; op_idx += step){
+                butterfly(op_idx,exp);
+            }
         }
+        // for(auto freq : freqs){
+            // cout << freq << endl;
+            //cout << sqrt(pow(freq.real(),2) + pow(freq.imag(),2)) << ";" << endl;
+        // }
+        // cout << endl;
+
+    }
 
 };
 
-#define N 8
 
-
-
-int main(){
-
-}
