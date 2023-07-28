@@ -1,18 +1,17 @@
+#ifndef FFT_H
+#define FFT_H
+
 #include<vector>
 #include <iostream>
 #include <complex>
 #include <cmath>
 
-#ifndef SPECTRAL_H
-#define SPECTRAL_H
 
 class Fft{
     private:
 
-        int sample_size;
-        int sample_exp;
         std::vector<int> sample_order;
-        std::vector<std::vector<std::complex<uint8_t>>> fft_coefs;
+        std::vector<std::vector<std::complex<float>>> fft_coefs;
 
         void fftSequence();
         void fftCoefs();
@@ -21,10 +20,15 @@ class Fft{
     
     public:
 
-        std::vector<std::complex<uint8_t>> freqs;
+        const unsigned int sample_size;
+        const unsigned int sample_exp;
+        // const unsigned int freq_size;
+        // const unsigned int freq_exp;
+
+        std::vector<std::complex<float>> freqs;
         
         Fft(int exp);
-        void analize(std::vector<std::complex<uint8_t>>& samples);
+        void analize(const float * samples);
 };
 
 #endif

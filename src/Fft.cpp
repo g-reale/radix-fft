@@ -23,7 +23,7 @@ void Fft::fftSequence(){
 }
 
 void Fft::fftCoefs(){
-    fft_coefs = vector<vector<complex<uint8_t>>>(sample_exp + 1,vector<complex<uint8_t>>(sample_size/2));
+    fft_coefs = vector<vector<complex<float>>>(sample_exp + 1,vector<complex<float>>(sample_size/2));
 
     for(int exp = 1; exp <= sample_exp; exp++){
         for(int idx = 0; idx < sample_size/2; idx++){
@@ -37,9 +37,9 @@ void Fft::butterfly(int bgn, int exp){
     int wing_b = (1<<(exp-1));
     
     for(int i = wing_a; i < wing_a + wing_b; i++){
-        complex<uint8_t> even = freqs[i];
-        complex<uint8_t> odd = freqs[i + wing_b];
-        complex<uint8_t> coef = fft_coefs[exp][i - wing_a];
+        complex<float> even = freqs[i];
+        complex<float> odd = freqs[i + wing_b];
+        complex<float> coef = fft_coefs[exp][i - wing_a];
         
         freqs[i] = even + coef * odd;
         freqs[i + wing_b] = even - coef * odd;
@@ -66,7 +66,7 @@ Fft::Fft(int exp):
     fftSequence();
 }
 
- void Fft::analize(vector<complex<uint8_t>>& samples){
+ void Fft::analize(const float * samples){
     
     for(int i = 0; i < sample_size; i++)
         freqs[i] = samples[sample_order[i]];

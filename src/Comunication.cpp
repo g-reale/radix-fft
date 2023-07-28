@@ -1,0 +1,4 @@
+class ArduinoConection{
+    private:
+    public:
+};
