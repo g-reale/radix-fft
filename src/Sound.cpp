@@ -10,10 +10,14 @@
 using namespace std;
 
 Sound::Sound(int exp):
+    buff_exp(exp + 1),
+    buff_size(1<<(exp+1)),
+    buff(new float[buff_size]),
+    buff_byte_size(buff_size * sizeof(float)),
+
     sample_exp(exp),
-    sample_size(1<<exp),
-    samples(new float[sample_size]),
-    sample_byte_size(sizeof(samples))
+    sample_size(1<<(exp)),
+    samples(sample_size)
 {
     int error;
     
@@ -37,17 +41,21 @@ Sound::Sound(int exp):
 
     if(!stream){
         cerr << "error: " << pa_strerror(error);
-        free((void*)samples);
+        free((void*)buff);
         exit(1);
     }
 }
 
 Sound::~Sound(){
-    free((void*)samples);
+    free((void*)buff);
     pa_simple_free(stream);
 }
 
 void Sound::listen(){
-    pa_simple_read(stream,(void *)samples, sample_byte_size, NULL);
+    while(pa_simple_read(stream,(void*)buff, buff_byte_size, NULL) < 0);
+    for(int i = 0; i < buff_size; i+=2){
+        samples[i>>1].real(buff[i]);
+        samples[i>>1].imag(buff[i+1]);
+    }
 }
 

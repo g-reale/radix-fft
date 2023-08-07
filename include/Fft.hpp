@@ -28,7 +28,7 @@ class Fft{
         std::vector<std::complex<float>> freqs;
         
         Fft(int exp);
-        void analize(const float * samples);
+        void analize(std::vector<std::complex<float>>& samples);
 };
 
 #endif

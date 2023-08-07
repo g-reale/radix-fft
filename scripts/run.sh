@@ -1,6 +1,6 @@
 #loads the sink and loopback
 sink_index=$(pactl load-module module-null-sink sink_name=spectral sink_properties=device.description="spectral") 
-monitor_index=$(pactl load-module module-loopback sink=spectral)
+monitor_index=$(pactl load-module module-loopback sink=spectral latency_msec=1)
 
 #starts the main program
 ./bin/main

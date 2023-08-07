@@ -66,7 +66,7 @@ Fft::Fft(int exp):
     fftSequence();
 }
 
- void Fft::analize(const float * samples){
+ void Fft::analize(vector<complex<float>>& samples){
     
     for(int i = 0; i < sample_size; i++)
         freqs[i] = samples[sample_order[i]];
