@@ -29,7 +29,7 @@ LINKDIR = $(patsubst %,-L%,$(LIBDIR:%/=%))
 
 
 # Libraries for linking
-LIBS = -lpulse-simple -lpulse -pthread
+LIBS = -lpulse-simple -lpulse -pthread -lncurses
 
 # Define the name of the executable
 EXECUTABLE = bin/main
