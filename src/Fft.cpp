@@ -60,13 +60,14 @@ string Fft::strBin(int number, int digits){
 Fft::Fft(int exp): 
     sample_exp(exp),
     sample_size(1<<exp),
-    freqs(sample_size,0)
+    freqs(sample_size,0),
+    freqs_abs(sample_size,0)
 {
     fftCoefs();
     fftSequence();
 }
 
- void Fft::analize(vector<complex<float>>& samples){
+ void Fft::analize(const vector<complex<float>>& samples){
     
     for(int i = 0; i < sample_size; i++)
         freqs[i] = samples[sample_order[i]];
@@ -77,4 +78,9 @@ Fft::Fft(int exp):
             butterfly(op_idx,exp);
         }
     }
+}
+
+void Fft::abs(){
+    for(int i = 0; i < sample_size; i++)
+        freqs_abs[i] = fabs(freqs[i].real()) + fabs(freqs[i].imag());
 }

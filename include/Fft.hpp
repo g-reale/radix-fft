@@ -22,13 +22,13 @@ class Fft{
 
         const unsigned int sample_size;
         const unsigned int sample_exp;
-        // const unsigned int freq_size;
-        // const unsigned int freq_exp;
-
+        
         std::vector<std::complex<float>> freqs;
+        std::vector<float> freqs_abs;
         
         Fft(int exp);
-        void analize(std::vector<std::complex<float>>& samples);
+        void analize(const std::vector<std::complex<float>>& samples);
+        void abs();
 };
 
 #endif

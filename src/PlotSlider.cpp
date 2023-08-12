@@ -18,7 +18,7 @@ PlotSlider::PlotSlider(WINDOW * parent,unsigned int y,unsigned int x,unsigned in
 
 void PlotSlider::update(vector<float> new_values){
     for(int i = 0; i < width; i++)
-        sliders[i].update(new_values[i]);
+        sliders[i].update(new_values[i],'-');
 }
 
 

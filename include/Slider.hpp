@@ -18,7 +18,7 @@ class Slider{
 
     public:
         Slider(WINDOW * parent,unsigned int y,unsigned int x,unsigned int height, float min, float max);
-        void update(float new_value);
+        void update(float new_value, char ch);
 };
 
 #endif

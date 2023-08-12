@@ -8,8 +8,12 @@ TODO:
 
 ## Coloring
 
-a primeira tarefa é definir 2 números, um que indique a força das altas frequências e outro das baixas
+reorganizar o PostProcessor como uma composição de classes
+    lowPassFilter
+    highPassFilter
+    adpatativaNormalizer
+    smootheningFilter (https://en.wikipedia.org/wiki/Exponential_smoothing)
 
-depois inserir esse par ordenado em alguma funcação g(x,y): [0 - 1]² -> [0 - 255]³
+o par ordenado em alguma funcação g(x,y): [0 - 1]² -> [0 - 255]³ (vou usar uma imagem)
 
 ## Driver | Comunication
