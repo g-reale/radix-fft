@@ -5,19 +5,12 @@
 #include <vector>
 #include <complex>
 
-class PostProcessor{
-    private:
-        
-        int freq_size;
-        float low_size;
-        float half_high_size;
-
-        float aging;
-        std::vector<float> low_hi_max;
-
-    public:
-        PostProcessor(unsigned int freq_size, float low_size, float aging);
-        std::vector<float> filter(std::vector<float>& freq_abs);
-        void adapitativeNormalization(std::vector<float>& low_hi);
+namespace PostProcessor{
+    float lowEnergy(float low_proportion, const std::vector<float>& freq_abs);
+    float highEnergy(float high_proportion, const std::vector<float>& freq_abs);
+    
+    template<int N> float normalize(float aging, float value);
+    template<int N> float ewma(float alpha, float value);
 };
+
 #endif

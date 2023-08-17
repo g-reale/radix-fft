@@ -3,41 +3,76 @@
 #include <vector>
 #include <complex>
 
-using namespace std;
 
-PostProcessor::PostProcessor(unsigned int freq_size, float low_proportion, float aging):
-    low_hi_max(vector<float>({0,0})),
-    aging(aging > 0 ? aging : 0),
-    freq_size(freq_size)
-{
-    if(low_proportion > 1) low_proportion = 1;
-    low_size = low_proportion * freq_size;
-    half_high_size = (freq_size - low_size) / 2;
-}
-
-vector<float> PostProcessor::filter(vector<float>& freq_abs){
-    float low = 0;
-    float hi = 0;
-    int i = 0;
-
-    for(int j = 0; j < half_high_size; j++,i++)
-        hi += freq_abs[i];
-
-    for(int j = 0; j < low_size; j++, i++)
-        low += freq_abs[i];
+namespace PostProcessor{
     
-    for(int j = i; j < freq_size; j++)
-        hi += freq_abs[i];
+    using namespace std;
 
-    return vector<float>({low,hi});
-}
 
-void PostProcessor::adapitativeNormalization(vector<float>& low_hi){
-    
-    for(int i = 0; i < 2; i++){
-        if(low_hi[i] == 0) continue;
-        if(low_hi[i] > low_hi_max[i]) low_hi_max[i] = low_hi[i];
-        low_hi[i] /= low_hi_max[i];
-        low_hi_max[i] *= aging;
+    float lowEnergy(float low_proportion, const vector<float>& freq_abs){
+        
+        static float proportion = -1;
+        static int sum_start = -1;
+        static int sum_end = -1;
+        if(proportion < 0 || proportion != low_proportion){
+            proportion = low_proportion > 1 ? 1 : low_proportion < 0 ? 0 : low_proportion;
+            sum_start = freq_abs.size() * (1 - proportion) / 2;
+            sum_end = sum_start + freq_abs.size() * proportion;
+        }
+
+        int low = 0;
+        for(int i = sum_start; i < sum_end; i++)
+            low += freq_abs[i];
+        return low;
     }
-}
+
+
+    float highEnergy(float high_proportion, const vector<float>& freq_abs){
+        
+        static float proportion = - 1;
+        static int sum_end = -1;
+        static int sum_start = -1;
+        
+        if(proportion < 0 || proportion != high_proportion){
+            proportion = high_proportion > 1 ? 1 : high_proportion < 0 ? 0 : high_proportion;
+            sum_end = (freq_abs.size() * proportion)/2;
+            sum_start = freq_abs.size() - sum_end;
+        }
+
+        int high = 0;
+        for(int i = 0; i < sum_end; i++)
+            high += freq_abs[i];
+
+        for(int i = sum_start; i < freq_abs.size(); i++)
+            high += freq_abs[i];
+        
+        return high;
+    }
+
+    
+    template <int N> float normalize(float aging, float value){
+        if(value == 0) return 0;
+
+        static float max = 0;
+        max = max < value ? value : max;
+        float normalized = value / max;
+        max *= aging;
+        return normalized;
+    }
+
+    
+    template <int N> float ewma(float alpha, float value){
+        static float past = 0;
+        alpha = alpha > 1 ? 1 : alpha < 0 ? 0 : alpha;
+
+        past = value * alpha + past * (1 - alpha);
+        return past;
+    }
+
+    //CPP is dumb and silly
+    template float normalize<0>(float aging, float value);
+    template float normalize<1>(float aging, float value);
+    template float ewma<0>(float alpha, float value);
+    template float ewma<1>(float alpha, float value);
+};
+
