@@ -1,4 +1,3 @@
-
 #include <csignal>
 #include <iostream>
 
@@ -7,6 +6,7 @@
 #include "../include/Slider.hpp"
 #include "../include/PlotSlider.hpp"
 #include "../include/PostProcessor.hpp"
+
 
 using namespace std;
 
@@ -19,6 +19,10 @@ Fft analizer(7);
 // }
 
 int main(){
+
+    int range_ratio = 999/255;
+    PostProcessor::Map2Image image("resources/gradient3.jpg");
+
     initscr();
     curs_set(0);
 
@@ -29,8 +33,6 @@ int main(){
     init_pair(1, COLOR_WHITE, COLOR_BLACK); // Define color pair 1: Custom red text on black background
     attron(COLOR_PAIR(1));
 
-    Slider s(stdscr,0,10,30,0,1);
-    Slider s1(stdscr,0,11,30,0,1);
 
     while(1){
         loopback.listen();
@@ -38,19 +40,17 @@ int main(){
         analizer.abs();    
 
         float low = PostProcessor::lowEnergy(0.5,analizer.freqs_abs);
-        low = PostProcessor::normalize<0>(0.99,low);
-        low = PostProcessor::ewma<0>(0.3,low);
+        low = PostProcessor::normalize<0>(0.999,low);
+        low = PostProcessor::ewma<0>(0.05,low);
 
         float high = PostProcessor::highEnergy(0.5,analizer.freqs_abs);
-        high = PostProcessor::normalize<1>(0.99,high);
-        high = PostProcessor::ewma<1>(0.3,high);
+        high = PostProcessor::normalize<1>(0.999,high);
+        high = PostProcessor::ewma<1>(0.05,high);
+
+        image.map(low,high);
 
         mvprintw(0,0,"%f %f",low,high);
-        init_color(COLOR_BLACK,(low * 999),0,(high * 999));
-
-        s.update(low,'|');
-        s1.update(high,'|');
-
+        init_color(COLOR_BLACK,image.color[0] * range_ratio,image.color[1] * range_ratio, image.color[2] * range_ratio);
         refresh();
     }
     endwin();

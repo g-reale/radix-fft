@@ -1,4 +1,8 @@
 #include "../include/PostProcessor.hpp"
+
+#define cimg_use_jpeg
+#include "../include/CImg.h"
+
 #include <tuple>
 #include <vector>
 #include <complex>
@@ -74,5 +78,22 @@ namespace PostProcessor{
     template float normalize<1>(float aging, float value);
     template float ewma<0>(float alpha, float value);
     template float ewma<1>(float alpha, float value);
+
+    Map2Image::Map2Image(std::string path):
+        color({0,0,0}),
+        image(path.c_str()),
+        width(image.width()),
+        height(image.height())
+    {}
+
+    void Map2Image::map(float x, float y){
+        int mapped_x = x * width;
+        int mapped_y = y * height;
+
+        color[0] = image(mapped_x,mapped_y,0,0);
+        color[1] = image(mapped_x,mapped_y,0,1);
+        color[2] = image(mapped_x,mapped_y,0,2);
+    }
+
 };
 

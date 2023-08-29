@@ -3,17 +3,19 @@
 TODO:
 
 - comunicação com o hardware
+- criar uma gui :(
+- formalizar os scripts de execução e loopback (.sh)
 - calcular os requisitos para atualização com frequência de 60hz
-- dimensões dinamicas da gui e testes de parâmetros para os widgets
-
-## Coloring
-
-reorganizar o PostProcessor como uma composição de classes
-    lowPassFilter
-    highPassFilter
-    adpatativaNormalizer
-    smootheningFilter (https://en.wikipedia.org/wiki/Exponential_smoothing)
-
-o par ordenado em alguma funcação g(x,y): [0 - 1]² -> [0 - 255]³ (vou usar uma imagem)
+- resolver os warnings do compilador (que aflição em compilar)
 
 ## Driver | Comunication
+
+- consertar o placa e reesrever o driver do arduino
+- criar uma classe para a comunicação desktop -> driver
+
+## GUI
+
+- odeio frontend :(
+- roda em outra thread
+- resize dinâmico dos widgets (utilizar porcentagem de tela para o posicionamento e redimensionamento)
+- widgets para a interação com o usuário
